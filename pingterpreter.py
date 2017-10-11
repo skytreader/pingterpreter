@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
 
+from sys import stdin
 import re
 
-ICMP_RE = re.compile("icmp_seq=(\d+)")
+ICMP_RE = re.compile(".+icmp_seq=(\d+).+")
 
 class Pingterpreter(object):
 
@@ -13,7 +14,7 @@ class Pingterpreter(object):
         "bad": "%(icmp_count) icmp packets skipped"
     }
     TIME_REPORTS = {
-        "good": "%(time)ms average for the last 10 packets"
+        "good": "%(time)ms average for the last 10 packets",
         "bad": "%(ave_time)ms between last packet and latest"
     }
 
@@ -27,4 +28,16 @@ class Pingterpreter(object):
         self.last_time = None
 
     def interpret(self, pingline):
-        pass
+        status_components = []
+        print(pingline)
+        if self.catch_icmp:
+            icmp = ICMP_RE.match(pingline)
+            if icmp:
+                icmp = icmp.group(1)
+                print(icmp)
+
+if __name__ == "__main__":
+    pingterpreter = Pingterpreter()
+
+    for pingline in stdin:
+        pingterpreter.interpret(pingline)
