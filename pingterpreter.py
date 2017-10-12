@@ -7,15 +7,16 @@ ICMP_RE = re.compile(".+icmp_seq=(\d+).+")
 
 class Pingterpreter(object):
 
-    GOOD_TEMPLATE = "You're on a roll. %(connection_status)"
-    BAD_TEMPLATE = "We're hitting a rough patch here. %(connection_status)"
+    GOOD_TEMPLATE = "You're on a roll. %(connection_status)s"
+    BAD_TEMPLATE = "We're hitting a rough patch here. %(connection_status)s"
     ICMP_REPORTS = {
-        "good": "%(icmp_count) icmp packets in a row",
-        "bad": "%(icmp_count) icmp packets skipped"
+        0: "%(icmp_count)d icmp packets in a row",
+        2: "Uh oh %(icmp_count)d icmp packets skipped",
+        5: "%(icmp_count)d icmp packets skipped"
     }
     TIME_REPORTS = {
-        "good": "%(time)ms average for the last 10 packets",
-        "bad": "%(ave_time)ms between last packet and latest"
+        "good": "%(time)dms average for the last 10 packets",
+        "bad": "%(ave_time)dms between last packet and latest"
     }
 
     def __init__(self, catch_icmp=True, catch_time=False):
@@ -24,6 +25,7 @@ class Pingterpreter(object):
 
         # State fields
         self.current_icmp = 0
+        self.consec_icmp = 0
         self.last_call = None
         self.last_time = None
 
@@ -33,8 +35,24 @@ class Pingterpreter(object):
         if self.catch_icmp:
             icmp = ICMP_RE.match(pingline)
             if icmp:
-                icmp = icmp.group(1)
-                print(icmp)
+                icmp = int(icmp.group(1))
+                jump = icmp - (self.current_icmp + 1)
+                if jump == 0:
+                    self.consec_icmp += 1
+                else:
+                    self.consec_icmp = 0
+                template_ctx = {
+                    "icmp_count": self.consec_icmp if jump == 0 else jump
+                }
+                if jump > 5:
+                    status_components.append(Pingterpreter.ICMP_REPORTS[5] % template_ctx)
+                else:
+                    template = Pingterpreter.ICMP_REPORTS.get(jump)
+                    if template:
+                        status_components.append(template % template_ctx)
+                self.current_icmp = icmp
+
+        print("".join(status_components))
 
 if __name__ == "__main__":
     pingterpreter = Pingterpreter()
