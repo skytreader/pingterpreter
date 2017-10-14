@@ -19,9 +19,10 @@ class Pingterpreter(object):
         "bad": "%(ave_time)dms between last packet and latest"
     }
 
-    def __init__(self, catch_icmp=True, catch_time=False):
+    def __init__(self, catch_icmp=True, catch_time=False, verbose=False):
         self.catch_icmp = catch_icmp
         self.catch_time = catch_time
+        self.verbose = verbose
 
         # State fields
         self.current_icmp = 0
@@ -31,7 +32,9 @@ class Pingterpreter(object):
 
     def interpret(self, pingline):
         status_components = []
-        print(pingline)
+        if self.verbose:
+            print(pingline)
+
         if self.catch_icmp:
             icmp = ICMP_RE.match(pingline)
             if icmp:
@@ -55,7 +58,23 @@ class Pingterpreter(object):
         print("".join(status_components))
 
 if __name__ == "__main__":
-    pingterpreter = Pingterpreter()
+    parser = ArgumentParser(description="Humanize ping output for network heuristics.")
+    parser.add_argument(
+        "--icmp", "-i", required=False, type=bool, default=True,
+        help="If true we will watch icmp as a metric"
+    )
+    parser.add_argument(
+        "--time", "-t", required=False, type=bool, default=True,
+        help="If true we will watch time as a metric"
+    )
+    parser.add_argument(
+        "--verbose", "-v", required=False, type=bool, default=False,
+        help="If set then display the actual PING lines as well."
+    )
+
+    args = vars(parser.parse_args())
+
+    pingterpreter = Pingterpreter(catch_icmp=args["icmp"], catch_time=args["catch_time"], verbose=args["verbose"])
 
     for pingline in stdin:
         pingterpreter.interpret(pingline)
