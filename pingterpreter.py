@@ -13,7 +13,7 @@ class Pingterpreter(object):
     GOOD_TEMPLATE = "You're on a roll. %(connection_status)s."
     BAD_TEMPLATE = "We're hitting a rough patch here. %(connection_status)s."
     ICMP_REPORTS = {
-        0: "%(icmp_count)d icmp packets in a row",
+        0: "%(icmp_count)d (%(total_icmp)d total recv) icmp packets in a row",
         2: "Uh oh %(icmp_count)d icmp packets skipped",
         5: "%(icmp_count)d icmp packets skipped"
     }
@@ -50,7 +50,8 @@ class Pingterpreter(object):
                 else:
                     self.consec_icmp = 0
                 template_ctx = {
-                    "icmp_count": self.consec_icmp if jump == 0 else jump
+                    "icmp_count": self.consec_icmp if jump == 0 else jump,
+                    "total_icmp": icmp
                 }
 
                 if jump >= 2:
