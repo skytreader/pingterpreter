@@ -2,6 +2,21 @@
 
 Humanize ping output and tell whether your connection is doing fine or what.
 
+## Sample usage
+
+Clone this repo then add the script to your `$PATH` (or just cd to the repo)
+then
+
+```
+$ ping google.com | pingterpreter.py
+```
+
+## Compatibility
+
+This script is guaranteed to work as invoked above on Ubuntu 16.04. `ping`
+flags which might modify the output format are not take into account nor are
+the output formats of other `ping` implementations.
+
 ## Sample output:
 
 ```
@@ -33,3 +48,7 @@ You're on a roll. 3 (272 total recv) icmp packets in a row and 91ms mean for the
 You're on a roll. 4 (273 total recv) icmp packets in a row and 91ms mean for the last 8 packets.
 You're on a roll. 5 (274 total recv) icmp packets in a row and 90ms mean for the last 8 packets.
 ```
+
+# License
+
+MIT
